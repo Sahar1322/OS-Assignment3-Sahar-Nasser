@@ -32,11 +32,11 @@
 
 | Field | Your Answer |
 |-------|-------------|
-| **Full Name** | [Write your full name here] |
-| **Student ID** | [Write your student ID here] |
-| **University Email** | [yourid]@std.psau.edu.sa |
-| **GitHub Username** | [your-github-username] |
-| **Repository Link** | [Paste your repository link here] |
+| **Full Name** | [Sahar Nasser Alkhudhyr] |
+| **Student ID** | [446052174] |
+| **University Email** | [446052174]@std.psau.edu.sa |
+| **GitHub Username** | [Sahar1322] |
+| **Repository Link** | [https://github.com/Sahar1322/OS-Assignment3-Sahar-Nasser] |
  
 ---
 
@@ -132,81 +132,117 @@
 
 ## Your Development Log
 
-### Entry 1 - [Date and Time]
-**What I did**:
+### Entry 1 - [November 15, 2026, 8:22 PM]
+**What I did**: Read the assignment instructions and examined the original scheduler output
 
 **Details**:
+I reviewed the roles of SharedStats, ReadyQueue, Process, and CpuWorker
+I checked that the program used my student ID, 446052174. The output showed 10 processes, a time quantum of 5000 ms, and 2 CPUs
+Both CPUs selected P1, and CPU-2 threw an IllegalThreadStateException
+I kept the original output for the comparison in Part C
 
 **Challenges**:
+The verification block passed even though one CPU threw an exception, which made the result confusing
 
 **Solution**:
+I examined the output before the verification block and traced the failure to the unprotected read and removal operations in ReadyQueue.poll(). I understood that correct totals alone did not prove that both CPUs had worked correctly
 
-**Time spent**:
+**Time spent**: 2 hours
 
 ---
 
-### Entry 2 - [Date and Time]
-**What I did**:
+### Entry 2 - [November 15, 2026, 10:25 PM]
+**What I did**: Added a ReentrantLock to protect the shared ready queue
 
 **Details**:
+I used queueLock in add(), poll(), processOf(), and snapshot() after adding it to ReadyQueue
+Since the list and map reflect linked queue information, I used the same lock to protect them
+Within the protected poll() method, I retained RaceWindow.pause()
+In the final block of each protected method, I freed the lock
 
 **Challenges**:
+I put the head read, pause, remove, and empty check in the same restricted area
+This stops two CPUs from choosing the same Thread object
 
 **Solution**:
+I put the head read, pause, removal, and empty check in the same secured area
+This stops the same Thread object from being chosen by two CPUs
 
-**Time spent**:
+**Time spent**: 1:30 hours
 
 ---
 
-### Entry 3 - [Date and Time]
-**What I did**:
+### Entry 3 - [November 15, 2026, 11:10 PM]
+**What I did**: Protected the shared statistics with separate locks
 
 **Details**:
+I added contextSwitchLock, completedProcessLock, and serviceTimeLock to SharedStats
+I protected each update method and its matching getter with the same lock
+I used separate locks because the three statistics are independent
+I left the original read-modify-write statements and RaceWindow.pause() calls unchanged inside the protected sections
 
-**Challenges**:
+**Challenges**: I needed to understand why the getters required protection as well as the update methods
 
-**Solution**:
+**Solution**: I used the matching lock for both reading and updating each variable so the threads coordinate their access and observe completed updates correctly
 
-**Time spent**:
+**Time spent**: 40 minutes
 
 ---
 
-### Entry 4 - [Date and Time]
-**What I did**:
+### Entry 4 - [November 16, 2026, 12:00 AM]
+**What I did**:Replaced polling with a counting semaphore and added CPU shutdown handling
 
 **Details**:
+I added the available semaphore with an initial value of 0
+I added available.release() after a process is inserted into the ready queue
+I added waitForProcess(), which calls available.acquire(), and changed CpuWorker to wait before polling
+I removed the polling delay and the busyWaitPolls increment from the CPU loop
+I added shutdownSignaled and protected it with queueLock so the shutdown notification is sent only once
 
-**Challenges**:
+**Challenges**:A CPU blocked in acquire() would not automatically wake up when the final process completed
 
 **Solution**:
+I called signalShutdown() when the completed count reached the total number of processes
+The method releases one shutdown permit per CPU, and a CPU exits when poll() returns null after waking
 
-**Time spent**:
+**Time spent**: 1:35 hours
 
 ---
 
-### Entry 5 - [Date and Time]
-**What I did**:
+### Entry 5 - [November 16, 2026, 2:00 AM]
+**What I did**:Checked the updated output and prepared the written explanation
 
 **Details**:
+I compared the original output with the updated output
+In the updated run, CPU-1 selected P1 and CPU-2 selected P2, and both CPUs continued executing processes
+The verification showed 22 context switches, 10 completed processes, 78727 ms of total service time, and 0 busy-waiting polls
+No exception or watchdog message appeared in the supplied final output
 
-**Challenges**:
+**Challenges**:I needed to explain the improvement even though the original verification block had also passed
 
 **Solution**:
+I used the duplicate selection of P1 and the original IllegalThreadStateException as evidence of the starter failure
+I explained that the updated run removed this failure while preserving the correct totals
 
-**Time spent**:
+**Time spent**: 30 minutes
 
 ---
 
-### Entry 6 - [Optional - Date and Time]
-**What I did**:
+### Entry 6 - [November 16, 2026, 7:00 AM]
+**What I did**:Reviewed the technical answers in MY_WORK.md
 
 **Details**:
+Compared the original and final verification blocks
+Explained why both blocks showed correct totals despite the exception in the original run
+Completed the table of critical sections and their locks
+Checked that the explanations matched my code
 
-**Challenges**:
+**Challenges**:The identical verification totals made the improvement difficult to explain
 
 **Solution**:
+I described the duplicate selection of P1 and the IllegalThreadStateException in the original run, then explained that both CPUs continued working without this exception in the final run
 
-**Time spent**:
+**Time spent**: 30 minutes
 
 ---
 
@@ -214,14 +250,16 @@
 
 > 💡 **TIP:** Fill this in **last**, after all entries are written.
 
-**Total time spent on assignment**: [X hours]
+**Total time spent on assignment**: [6:45 hours]
 
 **Most challenging part**:
+The most challenging part was understanding the CPU shutdown logic, because an empty ready queue does not necessarily mean that every process has finished
 
 **Most interesting learning**:
+The most interesting point was that the original program could pass all numerical checks while still containing a serious concurrency failure
 
 **What I would do differently next time**:
-
+Next time, I would save the output after each feature and record the development log immediately after each work session
 ---
 
 # Part B: Reflection (0.5 mark)
@@ -240,7 +278,11 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[I learned that correct totals do not always mean that a concurrent program is working correctly. 
+In my original output, both CPUs selected P1, and CPU-2 threw an IllegalThreadStateException even though the verification checks passed. Protecting the ready queue with a ReentrantLock prevents two CPUs from removing the same thread. 
+I also learned that a shared counter update contains separate read and write operations that need protection. 
+A counting semaphore allows a CPU to block until work becomes available instead of repeatedly checking an empty queue. 
+Finally, I learned that blocked workers need an explicit shutdown notification when no more work will arrive.]
 
 ## Question 2: What was the most challenging part of this assignment?
 
@@ -248,7 +290,12 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[The most challenging part for me was understanding how the CPUs should stop after the final process completed. 
+An empty queue can be temporary because another CPU may still be running a process that will return to the queue. 
+Therefore, I could not use an empty queue alone to decide that the simulation was finished. 
+A CPU waiting inside available.acquire() also needs a signal before it can continue and exit. 
+I used the completed-process count to detect completion and shutdownSignaled to prevent repeated shutdown notifications.
+This helped me understand the difference between waiting for more work and stopping permanently.]
 
 ## Question 3: How did you overcome the challenges you faced?
 
@@ -256,7 +303,12 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[I worked through the three features separately and traced how each one affected the program. 
+I started by examining the original output and the operations inside ReadyQueue.poll(). 
+I then followed the shared statistics methods and checked that each getter used the same lock as its matching update method. 
+For the semaphore, I traced what happens when a process is added, when a CPU waits, and when all processes finish. 
+I asked for clarification about the semaphore name and the location of the shutdown checks, then compared the explanation with the instructor's example. 
+Finally, I compared the updated output with the starter output and checked both the verification values and the absence of exceptions.]
 
 ## Question 4: Where can synchronization concepts be applied in real-world applications?
 
@@ -264,19 +316,26 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[Synchronization is needed when multiple workers access shared information. 
+In a ticket-booking system, a protected reservation operation can prevent two customers from booking the same seat. 
+In a banking system, coordinating balance updates can prevent one transaction from overwriting another transaction's result. 
+A print queue resembles the ready queue because jobs are added by producers and removed by workers. 
+A semaphore can make a worker wait until a print job becomes available. 
+These applications also need a clear shutdown procedure so waiting workers do not remain blocked after the service stops.]
 
 ### Optional: What would you like to learn more about?
 
-[Any topics related to synchronization or operating systems that you're curious about?]
+[I would like to learn more about fair locks, starvation, and how synchronization is implemented inside operating-system kernels]
 
 ### Optional: How confident do you feel about synchronization concepts now?
 
-[Beginner / Intermediate / Confident. What do you understand well? What needs more practice?]
+[Intermediate. I understand the purpose of mutex locks, critical sections, and counting semaphores, but I still need more practice with shutdown protocols and more complex deadlock scenarios.]
 
 ### Optional: Feedback on the assignment
 
-[Any comments? Was it helpful? Too easy or hard? Suggestions?]
+[The assignment was useful because the broken starter made concurrency failures visible. 
+The verification block helped me check the shared values, while the original exception showed why numerical checks alone were not enough. 
+A short shutdown timeline would make the semaphore section easier to understand.]
 
 ---
 
@@ -298,20 +357,45 @@
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+[In my original run, CPU-1 and CPU-2 both selected P1, and CPU-2 threw an IllegalThreadStateException when the same Thread object was started again. However, all verification values matched: 22 context switches, 10 completed processes, 78727 ms of service time, and 0 busy-waiting polls, so the numerical difference was zero for every check. 
+The surviving CPU continued processing the workload, which explains why the totals were correct despite the concurrency failure. 
+As a separate example of a possible lost update, two process threads running under CPU-1 and CPU-2 could both read contextSwitchCount as 12, pause, and then both write 13 instead of reaching 14. 
+This can happen without RaceWindow because a real operating system can interrupt execution between the read and write, and the timing-dependent interleaving makes the problem difficult to reproduce.]
 
 Verification block of the **original starter**:
 ```
-[Paste the verification block (or the exception/watchdog message) of the starter here]
+[═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)     expected 22       observed 22       ✔
+  Completed processes                    expected 10       observed 10       ✔
+  Total service time (ms)                expected 78727    observed 78727    ✔
+  Busy-waiting polls (must be 0)         expected 0        observed 0        ✔
+  ✔ All shared values are consistent.
+  
+  [CPU-1] picks P1
+[CPU-2] picks P1
+Exception in thread "CPU-2" java.lang.IllegalThreadStateException
+    at java.base/java.lang.Thread.start(Thread.java:1416)
+    at CpuWorker.run(SchedulerSimulationSync.java:283)]
 ```
 
 Verification block of **my final version**:
 ```
-[Paste the verification block of your final version here (all lines ✔)]
+[═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)     expected 22       observed 22       ✔
+  Completed processes                    expected 10       observed 10       ✔
+  Total service time (ms)                expected 78727    observed 78727    ✔
+  Busy-waiting polls (must be 0)         expected 0        observed 0        ✔
+  ✔ All shared values are consistent.
+  
+  The verification totals were correct in both runs. However, the starter run contained an IllegalThreadStateException after both CPUs selected P1. 
+  In the final run, both CPUs continued executing processes without this exception, so the improvement was correct concurrent execution rather than different totals]
 ```
 
 **Explanation of the timeline:**
-[Explain the lost update step by step.]
+[First, the process thread running under CPU-1 reads contextSwitchCount as 12. 
+Before it writes the new value, the process thread running under CPU-2 also reads 12. 
+The first thread writes 13, and the second thread then writes 13 using its own earlier copy. 
+The final value is 13 instead of 14, so one increment is lost.]
 
 ## Question 2: Critical Sections and Lock Granularity
 
@@ -321,12 +405,19 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+[The queueLock protects list and map in ReadyQueue.add(), poll(), processOf(), and snapshot(), and it also protects the shutdownSignaled check and update in signalShutdown(). 
+Separate locks protect the update method and matching getter for contextSwitchCount, completedProcessCount, and totalServiceTime. 
+I chose one lock per statistic because the variables are independent, which reduces unnecessary contention but requires more locks to manage. 
+The queue uses a separate lock so queue operations do not unnecessarily block independent statistics operations, and each lock is released in finally to support continued progress. 
+The locks provide mutual exclusion, but the default ReentrantLock is not fair, so bounded waiting and freedom from starvation are not guaranteed under every possible schedule.]
 
 | Critical section (variable / method) | Lock used | Why it needs protection |
 |---|---|---|
-| [e.g., `ReadyQueue.poll()`] | [lock name] | [reason] |
-| [...] | [...] | [...] |
+| ReadyQueue: add(), poll(), processOf(), snapshot() | queueLock | Protects list and map from concurrent access and prevents duplicate selection. |
+| ReadyQueue: signalShutdown() | queueLock | Protects shutdownSignaled so the shutdown signal is sent only once. |
+| incrementContextSwitch(), getContextSwitchCount() | contextSwitchLock | Prevents lost updates and protects reads of contextSwitchCount. |
+| incrementCompletedProcess(), getCompletedProcessCount() | completedProcessLock | Prevents lost updates and protects reads of completedProcessCount. |
+| addServiceTime(), getTotalServiceTime() | serviceTimeLock | Prevents lost updates and protects reads of totalServiceTime. |
 
 ## Question 3: Busy Waiting vs Semaphore
 
@@ -336,7 +427,9 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+[The starter polls the ready queue and sleeps for 20 ms whenever it finds the queue empty, causing repeated checks and wake-ups, although my original run recorded 0 busy-waiting polls. In the final version, waitForProcess() calls available.acquire() so a CPU blocks when no permit is available. 
+The semaphore starts at 0 because the queue is initially empty and reaches 10 after the initial process additions before the CPUs start. During normal execution, its permits represent published work that has not yet been acquired, while signalShutdown() releases SharedStats.totalCPUs permits once to wake waiting CPUs after all processes complete. 
+Without those shutdown permits, a CPU already blocked in acquire() could wait forever; after waking for shutdown, it polls the empty queue and exits when thread is null.]
 
 ## Question 4: Classical Problems and Deadlock
 
@@ -347,24 +440,24 @@ Verification block of **my final version**:
 **Your Answer:** *(3-5 sentences)*
 
 **Classical problem and roles**:
-[Name the problem; who is the producer, who is the consumer?]
+[This design resembles the producer-consumer problem: main produces the initial processes, and CPU workers consume queued work while also acting as producers when they re-enqueue unfinished processes.]
 
 **Semaphores for a bounded queue (name and initial value)**:
-[Name the three semaphores and their initial values.]
+[For an initially empty bounded buffer of capacity K, the standard semaphores are empty initialized to K, full initialized to 0, and mutex initialized to 1]
 
 **Deadlock scenario and prevention**:
-[Describe the scenario and the necessary condition you would break.]
+[If the buffer is full and a producer acquires mutex before waiting on empty, it holds the mutex while waiting for a free slot. A consumer cannot remove an item because it also needs mutex, so neither side can proceed. Waiting for the required resource permit before acquiring mutex prevents this hold-and-wait pattern, while using a consistent order for multiple locks can prevent circular wait.]
 
 ## Summary
 
 **Key concepts I understood through these questions:**
-1.
-2.
-3.
+1. A critical section must protect the complete shared operation, not only its final write.
+2. A counting semaphore coordinates work availability, while a mutex protects shared data.
+3. Blocked workers need an explicit shutdown notification when no more work will arrive.
 
 **Concepts I need to study more:**
-1.
-2.
+1. Fairness, starvation, and bounded waiting.
+2. Deadlock prevention in systems that use multiple locks and bounded queues.
 
 ---
 
